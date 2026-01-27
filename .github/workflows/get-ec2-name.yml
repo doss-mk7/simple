@@ -14,15 +14,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Configure AWS credentials using OIDC
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::159014723231:role/GitHub-OIDC-SSM-Role
           aws-region: eu-north-1
 
+      # 2️⃣ Get Windows EC2 system (computer) name
       - name: Get Windows EC2 System Name
         run: |
           aws ssm get-inventory \
             --filters "Key=AWS:InstanceIds,Values=i-03363def964064e94" \
-            --query "Entities[0].Data['AWS:InstanceInformation'].Content[0].ComputerName" \
-            --output text
+            --output json \
+          | jq -r '.Entities[0].Data["AWS:InstanceInformation"].Content[0].ComputerName'
