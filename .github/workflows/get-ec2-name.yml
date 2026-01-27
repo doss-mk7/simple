@@ -1,4 +1,4 @@
-name: Get EC2 Windows Name via SSM
+name: Get EC2 Windows Name via SSM1
 
 on:
   push:
