@@ -1,4 +1,4 @@
-name: Get Windows EC2 Name via SSM (OIDC)
+name: Get Windows EC2 System Name
 
 on:
   push:
@@ -6,39 +6,41 @@ on:
       - main
 
 permissions:
-  id-token: write   # REQUIRED for OIDC
+  id-token: write     # REQUIRED for OIDC
   contents: read
 
 jobs:
-  get-ec2-name:
+  get-system-name:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Configure AWS credentials using OIDC (NO access keys)
-      - name: Configure AWS Credentials
+      # 🔐 Configure AWS credentials via OIDC (no access keys)
+      - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::159014723231:role/GitHub-OIDC-SSM-Role
           aws-region: eu-north-1
 
-      # 2️⃣ Run PowerShell command on Windows EC2 via SSM
-      - name: Get EC2 Computer Name
+      # 🔹 Send SSM Command to Get Windows EC2 System Name
+      - name: Get Windows EC2 System Name
         run: |
+          # Use your EC2 instance ID directly
+          INSTANCE_ID="i-03363def964064e94"
+
           COMMAND_ID=$(aws ssm send-command \
-            --instance-ids i-03363def964064e94 \
+            --targets "Key=instanceIds,Values=$INSTANCE_ID" \
             --document-name "AWS-RunPowerShellScript" \
-            --comment "Get Windows computer name" \
-            --parameters commands="Write-Output \$env:COMPUTERNAME" \
+            --comment "Get System Name" \
+            --parameters 'commands=["echo $env:COMPUTERNAME"]' \
             --query "Command.CommandId" \
             --output text)
 
           echo "Command ID: $COMMAND_ID"
-
-          # wait for command execution
           sleep 10
 
-          aws ssm get-command-invocation \
+          # Get the output of the command
+          aws ssm list-command-invocations \
             --command-id "$COMMAND_ID" \
-            --instance-id i-03363def964064e94 \
-            --query "StandardOutputContent" \
+            --details \
+            --query "CommandInvocations[].CommandPlugins[].Output" \
             --output text
