@@ -1,4 +1,4 @@
-name: Get EC2 Windows Name via SSM1
+name: Get Windows EC2 Name via SSM (OIDC)
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 permissions:
-  id-token: write
+  id-token: write   # REQUIRED for OIDC
   contents: read
 
 jobs:
@@ -14,28 +14,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Configure AWS credentials using OIDC
-      - name: Configure AWS credentials via OIDC
+      # 1️⃣ Configure AWS credentials using OIDC (NO access keys)
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::159014723231:role/GitHub-OIDC-SSM-Role
           aws-region: eu-north-1
 
-      # 2️⃣ Send PowerShell command to EC2 to get computer name
-      - name: Get Windows EC2 Computer Name
+      # 2️⃣ Run PowerShell command on Windows EC2 via SSM
+      - name: Get EC2 Computer Name
         run: |
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids i-03363def964064e94 \
             --document-name "AWS-RunPowerShellScript" \
             --comment "Get Windows computer name" \
-            --parameters commands='$env:COMPUTERNAME' \
+            --parameters commands="Write-Output \$env:COMPUTERNAME" \
             --query "Command.CommandId" \
             --output text)
 
           echo "Command ID: $COMMAND_ID"
 
-          # wait a bit for command to execute
-          sleep 5
+          # wait for command execution
+          sleep 10
 
           aws ssm get-command-invocation \
             --command-id "$COMMAND_ID" \
