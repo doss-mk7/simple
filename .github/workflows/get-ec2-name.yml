@@ -6,7 +6,7 @@ on:
       - main
 
 permissions:
-  id-token: write     # REQUIRED for OIDC
+  id-token: write     # REQUIRED for OIDC1
   contents: read
 
 jobs:
