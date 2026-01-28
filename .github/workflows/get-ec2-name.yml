@@ -18,7 +18,7 @@ jobs:
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::159014723231:role/GitHub-OIDC-SSM-Role
+          role-to-assume: arn:aws:iam::159014723231:role/test
           aws-region: eu-north-1
 
       # 🔹 Send SSM Command to Get Windows EC2 System Name
